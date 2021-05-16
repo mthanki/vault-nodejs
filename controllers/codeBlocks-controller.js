@@ -1,18 +1,12 @@
+const mongoose = require('mongoose');
+
 const { v4: uuidv4 } = require('uuid');
 const { validationResult } = require('express-validator');
 
 const HttpError = require('../models/http-error');
 const CodeBlock = require('../models/codeBlock');
-
-let DUMMY_BLOCKS = [
-    {
-        id: 'c1',
-        name: 'nav',
-        code: 'html css',
-        tag: 'css',
-        creator: 'u1'
-    }
-]
+const User = require('../models/user');
+const mongooseUniqueValidator = require('mongoose-unique-validator');
 
 const getCodeBlockById = async (req, res, next) => {
     const blockId = req.params.cid;
@@ -56,6 +50,13 @@ const getCodeBlocksByUserId = async (req, res, next) => {
 }
 
 const updateCodeBlock = async (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return next(
+            new HttpError('Invalid input passed, please check your data', 422)
+        )
+    }
+
     const { name, code, tags } = req.body;
     const blockId = req.params.cid;
 
@@ -81,11 +82,11 @@ const updateCodeBlock = async (req, res, next) => {
     res.status(200).json({ codeBlock: updatedBlock.toObject({ getters: true }) });
 }
 
-const createCodeBlock = (req, res, next) => {
+const createCodeBlock = async (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
         const error = new HttpError(
-            'Created place failed, please include all fields.',
+            'Created CodeBlock failed, please include all fields.',
             500
         );
         return next(error);
@@ -97,19 +98,43 @@ const createCodeBlock = (req, res, next) => {
         code,
         tags,
         creator,
-    })
+    });
 
+    let user;
     try {
-        createdCodeBlock.save();
+        user = await User.findById(creator);
     } catch {
         const error = new HttpError(
-            'Created place failed, please try again.',
+            'Creating CodeBlock failed, please try again.',
             500
         );
         return next(error);
     }
 
-    res.status(201).json({ codeBlock: createdCodeBlock });
+    if (!user) {
+        return next(new HttpError(
+            'Could not find user for provided creator',
+            404
+        ));
+    }
+
+    try {
+        const sess = await mongoose.startSession();
+        sess.startTransaction();
+        await createdCodeBlock.save({ session: sess });
+        user.codeBlocks.push(createdCodeBlock);
+        await user.save({ session: sess });
+        await sess.commitTransaction();
+    } catch (err) {
+        console.log(err);
+        const error = new HttpError(
+            'Creating codeBlock failed, please try again.',
+            500
+        );
+        return next(error);
+    }
+
+    res.status(201).json({ codeBlock: createdCodeBlock.toObject({ getters: true }) });
 }
 
 const deleteCodeBlock = async (req, res, next) => {
@@ -117,18 +142,32 @@ const deleteCodeBlock = async (req, res, next) => {
 
     let codeBlock;
     try {
-        codeBlock = await CodeBlock.findById(blockId);
+        codeBlock = await CodeBlock.findById(blockId).populate('creator');
     } catch (err) {
         const error = new HttpError(
-            'Could not delete CodeBlock, please try again.',
+            'Could not find CodeBlock with provided Id, please try again.',
+            500
+        );
+        return next(error);
+    }
+
+    if (!codeBlock) {
+        const error = new HttpError(
+            'Could not find CodeBlock with provided Id, please try again.',
             500
         );
         return next(error);
     }
 
     try {
-        await codeBlock.remove();
+        const sess = await mongoose.startSession();
+        sess.startTransaction();
+        await codeBlock.remove({ session: sess });
+        codeBlock.creator.codeBlocks.pull(codeBlock);
+        await codeBlock.creator.save({ session: sess });
+        await sess.commitTransaction();
     } catch (err) {
+        console.log(err);
         const error = new HttpError(
             'Could not delete CodeBlock, please try again.',
             500
