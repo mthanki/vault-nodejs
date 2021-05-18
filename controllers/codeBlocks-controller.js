@@ -1,12 +1,10 @@
 const mongoose = require('mongoose');
 
-const { v4: uuidv4 } = require('uuid');
 const { validationResult } = require('express-validator');
 
 const HttpError = require('../models/http-error');
 const CodeBlock = require('../models/codeBlock');
 const User = require('../models/user');
-const mongooseUniqueValidator = require('mongoose-unique-validator');
 
 const getCodeBlockById = async (req, res, next) => {
     const blockId = req.params.cid;
@@ -37,7 +35,7 @@ const getCodeBlocksByUserId = async (req, res, next) => {
     try {
         codeBlocks = await CodeBlock.find({ creator: userId });
     } catch (err) {
-        const error = new HttpError("Fetching request failed.", 500);
+        const error = new HttpError("Fetching request failed. Please check input.", 500);
         return next(error);
     }
 

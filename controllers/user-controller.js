@@ -3,15 +3,6 @@ const { v4: uuidv4 } = require('uuid');
 const HttpError = require('../models/http-error');
 const User = require('../models/user');
 
-let DUMMY_USERS = [
-    {
-        id: 'u1',
-        name: 'Mehul Thanki',
-        email: 'email@email.com',
-        password: 'testuser'
-    }
-];
-
 const getUsers = async (req, res, next) => {
     let foundUsers;
     try {
