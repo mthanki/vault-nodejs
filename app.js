@@ -2,6 +2,8 @@ const express = require('express');
 
 const mongoose = require('mongoose');
 
+const cors = require('cors');
+
 const HttpError = require('./models/http-error');
 
 const codeBlockRoutes = require("./routes/codeBlock-routes");
@@ -16,6 +18,8 @@ mongoose.connect(
 });
 
 const app = express();
+
+app.options('*', cors());
 
 app.use(express.json());
 

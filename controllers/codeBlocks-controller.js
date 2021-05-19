@@ -25,6 +25,11 @@ const getCodeBlockById = async (req, res, next) => {
         return next(error);
     }
 
+    if (req.userData.userId !== codeBlock.creator) {
+        const error = new HttpError("Unauthorized.", 401);
+        return next(error);
+    }
+
     res.json({ codeBlock: codeBlock.toObject({ getters: true }) });
 }
 
