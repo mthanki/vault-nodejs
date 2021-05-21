@@ -76,7 +76,7 @@ const signup = async (req, res, next) => {
     try {
         token = jwt.sign(
             { userId: createdUser.id, email: createdUser.email },
-            'lock_and_key',
+            process.env.JWT_KEY,
             { expiresIn: '1h' }
         );
     } catch (err) {
@@ -128,7 +128,7 @@ const login = async (req, res, next) => {
     try {
         token = jwt.sign(
             { userId: identifiedUser.id, email: identifiedUser.email },
-            'lock_and_key',
+            process.env.JWT_KEY,
             { expiresIn: '1h' }
         );
     } catch (err) {

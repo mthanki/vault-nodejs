@@ -34,7 +34,9 @@ const getCodeBlockById = async (req, res, next) => {
 }
 
 const getCodeBlocksByUserId = async (req, res, next) => {
-    const userId = req.params.uid;
+    // const userId = req.params.uid;
+    const userId = req.userData.userId;
+    console.log(userId);
 
     let codeBlocks;
     try {
@@ -44,10 +46,10 @@ const getCodeBlocksByUserId = async (req, res, next) => {
         return next(error);
     }
 
-    if (!codeBlocks || codeBlocks.length === 0) {
-        const error = new HttpError("No CodeBlocks found for provided Id.", 500);
-        return next(error);
-    }
+    // if (!codeBlocks || codeBlocks.length === 0) {
+    //     const error = new HttpError("No CodeBlocks found for provided Id.", 500);
+    //     return next(error);
+    // }
 
     res.json({ codeBlocks: codeBlocks.map(cb => cb.toObject({ getters: true })) });
 }
@@ -95,18 +97,20 @@ const createCodeBlock = async (req, res, next) => {
         return next(error);
     }
 
-    const { name, code, tags, creator } = req.body;
+    const { name, code, tags } = req.body;
+    const creator = req.userData.userId;
     const createdCodeBlock = new CodeBlock({
         name,
         code,
         tags,
-        creator,
+        creator: creator
     });
 
     let user;
     try {
         user = await User.findById(creator);
-    } catch {
+    } catch (err) {
+        console.log(err)
         const error = new HttpError(
             'Creating CodeBlock failed, please try again.',
             500
