@@ -12,7 +12,7 @@ router.get('/:cid', codeBlocksController.getCodeBlockById);
 // Routes after this require auth token
 router.use(checkAuth);
 
-router.get('/user/:uid', codeBlocksController.getCodeBlocksByUserId);
+router.get('/user/all-blocks', codeBlocksController.getCodeBlocksByUserId);
 
 router.post('/',
     [

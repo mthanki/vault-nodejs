@@ -36,7 +36,6 @@ const getCodeBlockById = async (req, res, next) => {
 const getCodeBlocksByUserId = async (req, res, next) => {
     // const userId = req.params.uid;
     const userId = req.userData.userId;
-    console.log(userId);
 
     let codeBlocks;
     try {
@@ -46,11 +45,6 @@ const getCodeBlocksByUserId = async (req, res, next) => {
         return next(error);
     }
 
-    // if (!codeBlocks || codeBlocks.length === 0) {
-    //     const error = new HttpError("No CodeBlocks found for provided Id.", 500);
-    //     return next(error);
-    // }
-
     res.json({ codeBlocks: codeBlocks.map(cb => cb.toObject({ getters: true })) });
 }
 
@@ -58,7 +52,7 @@ const updateCodeBlock = async (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
         return next(
-            new HttpError('Invalid input passed, please check your data', 422)
+            new HttpError('Invalid input passed, please include all fields', 422)
         )
     }
 
