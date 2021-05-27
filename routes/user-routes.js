@@ -11,7 +11,7 @@ router.post('/signup',
     [
         check('name').notEmpty(),
         check('email').isLength({ min: 1 }),
-        check('password').isLength({ min: 8 })
+        check('password').matches('^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9]).{8,}$'),
     ],
     userController.signup);
 
