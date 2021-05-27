@@ -7,7 +7,7 @@ const codeBlocksController = require('../controllers/codeBlocks-controller');
 
 const router = express.Router();
 
-router.get('/:cid', codeBlocksController.getCodeBlockById);
+// router.get('/:cid', codeBlocksController.getCodeBlockById);
 
 // Routes after this require auth token
 router.use(checkAuth);
