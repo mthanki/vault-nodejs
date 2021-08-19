@@ -49,7 +49,7 @@ const getCodeBlocksByUserId = async (req, res, next) => {
   }
 
   res.json({
-    codeBlocks: codeBlocks.map((cb) => cb.toObject({ getters: true })),
+    codeBlocks: (codeBlocks.map((cb) => cb.toObject({ getters: true })).reverse()),
   });
 };
 
